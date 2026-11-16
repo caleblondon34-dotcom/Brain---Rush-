@@ -26,8 +26,8 @@ def main(page: ft.Page):
         },
         {
             "pregunta": "What is 21 + 5?",
-            "opciones": ["A) 8", "B) 9", "C)26", "D) 12"],
-            "correcta": "C)26"
+            "opciones": ["A) 8", "B) 9", "C) 26", "D) 12"],
+            "correcta": "C) 26"
         },
         {
             "pregunta": "Which animal is known as the king of the jungle?",
@@ -64,6 +64,13 @@ def main(page: ft.Page):
         color=ft.Colors.YELLOW
     )
 
+    # Contador de preguntas
+    progreso = ft.Text(
+        "Question 0 of 5",
+        size=16,
+        color=ft.Colors.CYAN
+    )
+
     mensaje = ft.Text(
         "",
         size=16,
@@ -76,9 +83,7 @@ def main(page: ft.Page):
     )
 
     # Botón para iniciar
-    boton = ft.Button(
-        "START GAME"
-    )
+    boton = ft.Button("START GAME")
 
     # Botón para avanzar
     siguiente = ft.Button(
@@ -90,6 +95,7 @@ def main(page: ft.Page):
     def mostrar_pregunta():
         pregunta.value = preguntas[numero]["pregunta"]
         marcador.value = f"Points: {puntos}"
+        progreso.value = f"Question {numero + 1} of {len(preguntas)}"
         mensaje.value = ""
 
         opciones.controls.clear()
@@ -122,7 +128,8 @@ def main(page: ft.Page):
             mensaje.value = "Correct answer! Great job! 🎉"
             mensaje.color = ft.Colors.GREEN
         else:
-            mensaje.value = "Wrong answer! ❌"
+            correcta = preguntas[numero]["correcta"]
+            mensaje.value = f"Wrong answer! The correct answer is {correcta}"
             mensaje.color = ft.Colors.RED
 
         # Desactivar los botones después de responder
@@ -167,6 +174,7 @@ def main(page: ft.Page):
 
             pregunta.value = "Are you ready for the challenge?"
             marcador.value = "Points: 0"
+            progreso.value = "Question 0 of 5"
             mensaje.value = ""
             opciones.controls.clear()
 
@@ -186,6 +194,7 @@ def main(page: ft.Page):
             descripcion,
             boton,
             marcador,
+            progreso,
             pregunta,
             opciones,
             mensaje,
@@ -213,3 +222,4 @@ def main(page: ft.Page):
 
 
 ft.run(main)
+
