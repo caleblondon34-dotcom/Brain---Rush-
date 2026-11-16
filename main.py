@@ -10,13 +10,13 @@ def main(page: ft.Page):
     # Preguntas del juego
     preguntas = [
         {
-            "pregunta": "What is the capital of France?",
-            "opciones": ["A) London", "B) Paris", "C) Madrid", "D) Rome"],
-            "correcta": "B) Paris"
+            "pregunta": "What is the capital of Canada?",
+            "opciones": ["A) London", "B) Paris", "C) Madrid", "D) Ottawa"],
+            "correcta": "D) Ottawa"
         },
         {
             "pregunta": "How many days are in a week?",
-            "opciones": ["A) Five", "B) Six", "C) Seven", "D) Eight"],
+            "opciones": ["A) Five", "B) Four", "C) Seven", "D) Eight"],
             "correcta": "C) Seven"
         },
         {
@@ -25,9 +25,9 @@ def main(page: ft.Page):
             "correcta": "A) Mars"
         },
         {
-            "pregunta": "What is 5 + 5?",
-            "opciones": ["A) 8", "B) 9", "C) 10", "D) 12"],
-            "correcta": "C) 10"
+            "pregunta": "What is 21 + 5?",
+            "opciones": ["A) 8", "B) 9", "C)26", "D) 12"],
+            "correcta": "C)26"
         },
         {
             "pregunta": "Which animal is known as the king of the jungle?",
