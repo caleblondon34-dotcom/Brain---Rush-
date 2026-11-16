@@ -1,11 +1,14 @@
+import asyncio
 import flet as ft
 
 
 def main(page: ft.Page):
-    # Configuración de la ventana
+    # Configuración general
     page.title = "BRAIN RUSH"
-    page.bgcolor = ft.Colors.BLUE_GREY_900
+    page.bgcolor = "#101426"
     page.padding = 25
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    page.scroll = ft.ScrollMode.AUTO
 
     # Preguntas del juego
     preguntas = [
@@ -38,64 +41,157 @@ def main(page: ft.Page):
 
     numero = 0
     puntos = 0
+    segundos = 10
+    reloj_activo = False
+    turno_id = 0
 
     # Título
     titulo = ft.Text(
-        "BRAIN RUSH",
-        size=35,
+        "🧠 BRAIN RUSH",
+        size=38,
         weight=ft.FontWeight.BOLD,
-        color=ft.Colors.CYAN
+        color="#22D3EE"
     )
 
     descripcion = ft.Text(
-        "Test your knowledge and challenge your mind!",
-        color=ft.Colors.WHITE
+        "THINK FAST. ANSWER SMART!",
+        size=14,
+        color="#C4B5FD"
     )
 
+    # Puntuación
+    marcador = ft.Text(
+        "SCORE: 0 / 50",
+        size=20,
+        weight=ft.FontWeight.BOLD,
+        color="#FACC15"
+    )
+
+    barra_puntos = ft.ProgressBar(
+        value=0,
+        color="#22D3EE",
+        bgcolor="#344054",
+        height=10
+    )
+
+    # Progreso de preguntas
+    progreso = ft.Text(
+        "QUESTION 0 OF 5",
+        size=14,
+        color="#A5B4FC"
+    )
+
+    # Temporizador
+    reloj = ft.Text(
+        "⏳ 10 SECONDS",
+        size=22,
+        weight=ft.FontWeight.BOLD,
+        color="#4ADE80"
+    )
+
+    barra_tiempo = ft.ProgressBar(
+        value=1,
+        color="#4ADE80",
+        bgcolor="#344054",
+        height=10
+    )
+
+    # Pregunta y mensaje
     pregunta = ft.Text(
         "Are you ready for the challenge?",
-        size=20,
-        color=ft.Colors.WHITE
-    )
-
-    marcador = ft.Text(
-        "Points: 0",
-        size=18,
-        color=ft.Colors.YELLOW
-    )
-
-    # Contador de preguntas
-    progreso = ft.Text(
-        "Question 0 of 5",
-        size=16,
-        color=ft.Colors.CYAN
+        size=21,
+        weight=ft.FontWeight.BOLD,
+        color=ft.Colors.WHITE,
+        text_align=ft.TextAlign.CENTER
     )
 
     mensaje = ft.Text(
         "",
         size=16,
-        color=ft.Colors.WHITE
+        color=ft.Colors.WHITE,
+        text_align=ft.TextAlign.CENTER
     )
 
+    # Opciones de respuesta
     opciones = ft.Column(
-        spacing=10,
+        spacing=12,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER
     )
 
-    # Botón para iniciar
-    boton = ft.Button("START GAME")
-
-    # Botón para avanzar
-    siguiente = ft.Button(
-        "NEXT QUESTION",
-        disabled=True
+    # Botones principales
+    boton_inicio = ft.Button(
+        content="START GAME 🚀",
+        width=240,
+        height=50
     )
 
-    # Mostrar pregunta y opciones
+    siguiente = ft.Button(
+        content="NEXT QUESTION ➜",
+        width=240,
+        height=50,
+        disabled=True,
+        visible=False
+    )
+
+    play_again = ft.Button(
+        content="PLAY AGAIN 🔄",
+        width=240,
+        height=50,
+        visible=False
+    )
+
+    # Detener el reloj
+    def detener_reloj():
+        nonlocal reloj_activo, turno_id
+
+        reloj_activo = False
+        turno_id += 1
+
+    # Cuenta regresiva
+    async def cuenta_regresiva():
+        nonlocal segundos
+
+        mi_turno = turno_id
+
+        while reloj_activo and mi_turno == turno_id:
+            await asyncio.sleep(1)
+
+            if not reloj_activo or mi_turno != turno_id:
+                break
+
+            segundos -= 1
+            reloj.value = f"⏳ {segundos} SECONDS"
+            barra_tiempo.value = segundos / 10
+
+            if segundos <= 3:
+                reloj.color = ft.Colors.RED
+                barra_tiempo.color = ft.Colors.RED
+
+            page.update()
+
+            if segundos == 0:
+                terminar_pregunta(False, tiempo_agotado=True)
+                break
+
+    # Iniciar el reloj
+    def iniciar_reloj():
+        nonlocal segundos, reloj_activo
+
+        segundos = 10
+        reloj_activo = True
+
+        reloj.value = "⏳ 10 SECONDS"
+        reloj.color = "#4ADE80"
+
+        barra_tiempo.value = 1
+        barra_tiempo.color = "#4ADE80"
+
+        page.run_task(cuenta_regresiva)
+
+    # Mostrar pregunta
     def mostrar_pregunta():
         pregunta.value = preguntas[numero]["pregunta"]
-        marcador.value = f"Points: {puntos}"
-        progreso.value = f"Question {numero + 1} of {len(preguntas)}"
+        progreso.value = f"QUESTION {numero + 1} OF {len(preguntas)}"
         mensaje.value = ""
 
         opciones.controls.clear()
@@ -105,34 +201,45 @@ def main(page: ft.Page):
                 ft.Button(
                     content=opcion,
                     width=300,
-                    height=50,
+                    height=52,
                     style=ft.ButtonStyle(
-                        bgcolor=ft.Colors.BLUE_GREY_700,
+                        bgcolor="#293653",
                         color=ft.Colors.WHITE,
-                        shape=ft.RoundedRectangleBorder(radius=12)
+                        shape=ft.RoundedRectangleBorder(radius=14)
                     ),
                     on_click=verificar_respuesta
                 )
             )
 
+        iniciar_reloj()
         page.update()
 
-    # Comprobar respuesta seleccionada
-    def verificar_respuesta(e):
+    # Finalizar pregunta
+    def terminar_pregunta(es_correcta, tiempo_agotado=False):
         nonlocal numero, puntos
 
-        seleccion = e.control.content
+        detener_reloj()
 
-        if seleccion == preguntas[numero]["correcta"]:
-            puntos += 10
-            mensaje.value = "Correct answer! Great job! 🎉"
-            mensaje.color = ft.Colors.GREEN
-        else:
-            correcta = preguntas[numero]["correcta"]
-            mensaje.value = f"Wrong answer! The correct answer is {correcta}"
+        if tiempo_agotado:
+            mensaje.value = (
+                f"TIME'S UP! ⏰ Correct answer: "
+                f"{preguntas[numero]['correcta']}"
+            )
             mensaje.color = ft.Colors.RED
 
-        # Desactivar los botones después de responder
+        elif es_correcta:
+            puntos += 10
+            mensaje.value = "CORRECT ANSWER! 🎉 +10 POINTS"
+            mensaje.color = ft.Colors.GREEN
+
+        else:
+            correcta = preguntas[numero]["correcta"]
+            mensaje.value = f"WRONG ANSWER! Correct: {correcta}"
+            mensaje.color = ft.Colors.RED
+
+        marcador.value = f"SCORE: {puntos} / 50"
+        barra_puntos.value = puntos / 50
+
         for control in opciones.controls:
             control.disabled = True
 
@@ -140,86 +247,109 @@ def main(page: ft.Page):
 
         if numero < len(preguntas):
             siguiente.disabled = False
+            siguiente.visible = True
         else:
-            pregunta.value = "Game completed! 🏆"
-            marcador.value = f"Final points: {puntos}"
-            siguiente.text = "PLAY AGAIN"
-            siguiente.disabled = False
+            pregunta.value = "🏆 GAME COMPLETED!"
+            progreso.value = "YOU FINISHED ALL QUESTIONS!"
+            reloj.value = "TIME FINISHED"
+            barra_tiempo.value = 0
+
+            mensaje.value += f"\nFINAL SCORE: {puntos} / 50"
+
+            siguiente.visible = False
+            play_again.visible = True
 
         page.update()
 
-    # Iniciar o reiniciar el juego
+    # Comprobar respuesta
+    def verificar_respuesta(e):
+        if not reloj_activo:
+            return
+
+        seleccion = e.control.content
+        correcta = preguntas[numero]["correcta"]
+
+        terminar_pregunta(seleccion == correcta)
+
+    # Iniciar partida
     def iniciar_juego(e):
         nonlocal numero, puntos
+
+        detener_reloj()
 
         numero = 0
         puntos = 0
 
-        boton.visible = False
-        siguiente.text = "NEXT QUESTION"
-        siguiente.disabled = True
+        marcador.value = "SCORE: 0 / 50"
+        barra_puntos.value = 0
+
+        boton_inicio.visible = False
+        siguiente.visible = False
+        play_again.visible = False
 
         mostrar_pregunta()
 
-    # Pasar a la siguiente pregunta
+    # Siguiente pregunta
     def avanzar(e):
-        nonlocal numero, puntos
+        siguiente.disabled = True
+        siguiente.visible = False
 
-        if numero >= len(preguntas):
-            numero = 0
-            puntos = 0
-            boton.visible = True
-            siguiente.text = "NEXT QUESTION"
-            siguiente.disabled = True
+        mostrar_pregunta()
 
-            pregunta.value = "Are you ready for the challenge?"
-            marcador.value = "Points: 0"
-            progreso.value = "Question 0 of 5"
-            mensaje.value = ""
-            opciones.controls.clear()
+    # Volver a jugar
+    def reiniciar_juego(e):
+        iniciar_juego(e)
 
-        else:
-            siguiente.disabled = True
-            mostrar_pregunta()
-
-        page.update()
-
-    boton.on_click = iniciar_juego
+    boton_inicio.on_click = iniciar_juego
     siguiente.on_click = avanzar
+    play_again.on_click = reiniciar_juego
 
-    # Organizar los elementos
+    # Diseño principal
     contenido = ft.Column(
         controls=[
             titulo,
             descripcion,
-            boton,
+            ft.Divider(color="#344054"),
             marcador,
+            barra_puntos,
             progreso,
+            ft.Container(height=5),
+            reloj,
+            barra_tiempo,
+            ft.Container(height=10),
             pregunta,
             opciones,
             mensaje,
-            siguiente
+            ft.Container(height=5),
+            boton_inicio,
+            siguiente,
+            play_again
         ],
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        spacing=20
+        spacing=17
     )
 
-    # Contenedor principal
+    # Tarjeta principal
     pantalla = ft.Container(
         content=contenido,
-        bgcolor=ft.Colors.INDIGO_900,
-        padding=40,
-        border_radius=20,
-        width=500
+        bgcolor="#1B2542",
+        padding=35,
+        border_radius=25,
+        width=520,
+        border=ft.Border.all(1, "#34466B")
     )
 
+    # Agregar pantalla con desplazamiento
     page.add(
         ft.Row(
             controls=[pantalla],
-            alignment=ft.MainAxisAlignment.CENTER
+            alignment=ft.MainAxisAlignment.CENTER,
+            vertical_alignment=ft.CrossAxisAlignment.START
         )
     )
 
 
 ft.run(main)
+
+
 
