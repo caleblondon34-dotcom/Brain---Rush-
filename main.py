@@ -207,10 +207,13 @@ def main(page: ft.Page):
         text_align=ft.TextAlign.CENTER
     )
 
-    # Opciones
-    opciones = ft.Column(
+    # Opciones en formato horizontal
+    opciones = ft.Row(
+        wrap=True,
         spacing=12,
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+        run_spacing=12,
+        alignment=ft.MainAxisAlignment.CENTER,
+        vertical_alignment=ft.CrossAxisAlignment.CENTER
     )
 
     # Botones principales
@@ -279,7 +282,7 @@ def main(page: ft.Page):
             if reloj_activo:
                 reloj.value = f"⏳ {segundos} {t['seconds']}"
 
-            # Actualizar opciones sin reiniciar el reloj
+            # Actualizar opciones en formato horizontal
             opciones.controls.clear()
 
             for i, opcion in enumerate(
@@ -288,8 +291,8 @@ def main(page: ft.Page):
                 opciones.controls.append(
                     ft.Button(
                         content=opcion,
-                        width=300,
-                        height=52,
+                        width=210,
+                        height=65,
                         disabled=pregunta_respondida,
                         style=ft.ButtonStyle(
                             bgcolor="#E8EEFF",
